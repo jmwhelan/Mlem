@@ -1499,7 +1499,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_ASSET_PATHS = "\"Mlem/Preview Content\"";
-				DEVELOPMENT_TEAM = ZSVA6DVZHM;
+				DEVELOPMENT_TEAM = P9Z395JR22;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Mlem/Info.plist;
@@ -1517,7 +1517,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.0.7;
-				PRODUCT_BUNDLE_IDENTIFIER = com.davidbures.Mlem;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jmw.Mlem;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1533,7 +1533,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_ASSET_PATHS = "\"Mlem/Preview Content\"";
-				DEVELOPMENT_TEAM = ZSVA6DVZHM;
+				DEVELOPMENT_TEAM = P9Z395JR22;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Mlem/Info.plist;
@@ -1551,7 +1551,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.0.7;
-				PRODUCT_BUNDLE_IDENTIFIER = com.davidbures.Mlem;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jmw.Mlem;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
