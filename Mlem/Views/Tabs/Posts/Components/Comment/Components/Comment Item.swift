@@ -15,8 +15,11 @@ struct CommentItem: View
     @EnvironmentObject var appState: AppState
     
     @State var account: SavedAccount
-    
     @State var hierarchicalComment: HierarchicalComment
+    
+    // Optional post context used to determin things
+    // like if the person is OP or not
+    @State var post: APIPostView? = nil
     
     @State var isCollapsed = false
     
@@ -70,47 +73,12 @@ struct CommentItem: View
             HStack(spacing: 12)
             {
                 #warning("TODO: Add post rating")
-                HStack
-                {
-                    HStack(alignment: .center, spacing: 2) {
-                        Image(systemName: "arrow.up")
-                        
-                        Text(String(localCommentScore ?? hierarchicalComment.commentView.counts.score))
-                    }
-                    .foregroundColor(upvoteColor)
-                    .onTapGesture {
-                        Task(priority: .userInitiated) {
-                            try await rate(hierarchicalComment, operation: .upvote)
-                        }
-                    }
-                    
-                    Image(systemName: "arrow.down")
-                        .foregroundColor(downvoteColor)
-                        .onTapGesture {
-                            Task(priority: .userInitiated) {
-                                try await rate(hierarchicalComment, operation: .downvote)
-                            }
-                        }
-                }
-                .accessibilityElement(children: .ignore)
-                .accessibilityValue("\(localCommentScore ?? hierarchicalComment.commentView.counts.score) votes")
-                .accessibilityAdjustableAction { direction in
-                    switch direction {
-                    case .increment:
-                        Task(priority: .userInitiated) {
-                            try await rate(hierarchicalComment, operation: .upvote)
-                        }
-                    case .decrement:
-                        Task(priority: .userInitiated) {
-                            Task(priority: .userInitiated) {
-                                try await rate(hierarchicalComment, operation: .downvote)
-                            }
-                        }
-                    default:
-                        // Not sure what to do here.
-                        UIAccessibility.post(notification: .announcement, argument: "Unknown Action")
-                    }
-                }
+                VoteComplex(
+                    vote: localVote ?? hierarchicalComment.commentView.myVote ?? .resetVote,
+                    score: localCommentScore ?? hierarchicalComment.commentView.counts.score,
+                    upvote: upvote,
+                    downvote: downvote
+                )
 
                 HStack(spacing: 4)
                 {
@@ -134,6 +102,7 @@ struct CommentItem: View
                 let relativeTime = getTimeIntervalFromNow(date: hierarchicalComment.commentView.comment.published)
                 let creator = hierarchicalComment.commentView.creator.displayName ?? ""
                 let commentorLabel = "Last updated \(relativeTime) ago by \(creator)"
+                
                 HStack
                 {
                     #warning("TODO: Make the text selection work")
@@ -151,7 +120,8 @@ struct CommentItem: View
                     }
                      */
                     Text(relativeTime)
-                    UserProfileLink(account: account, user: hierarchicalComment.commentView.creator)
+                    UserProfileLink(account: account, user: hierarchicalComment.commentView.creator, postContext: post, commentContext: hierarchicalComment.commentView.comment)
+                                    
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(commentorLabel)
@@ -176,7 +146,7 @@ struct CommentItem: View
                 {
                     ForEach(hierarchicalComment.children)
                     { comment in
-                        CommentItem(account: account, hierarchicalComment: comment)
+                        CommentItem(account: account, hierarchicalComment: comment, post: post)
                     }
                 }
                 .transition(.move(edge: .top).combined(with: .opacity))
@@ -217,6 +187,14 @@ struct CommentItem: View
             }
             .presentationDetents([.medium])
         }
+    }
+    
+    private func upvote() async {
+        try? await rate(hierarchicalComment, operation: .upvote)
+    }
+    
+    private func downvote() async {
+        try? await rate(hierarchicalComment, operation: .downvote)
     }
     
     private func rate(_ comment: HierarchicalComment, operation: ScoringOperation) async throws {
