@@ -63,6 +63,7 @@ struct CompactPost: View {
                             .foregroundColor(.secondary)
                             .font(.caption)
                         UserProfileLink(account: account, user: postView.creator)
+                            .font(.caption)
                         
                         Spacer()
                     }
@@ -79,7 +80,7 @@ struct CompactPost: View {
         Group {
             switch postView.postType {
             case .image(let url):
-                CachedAsyncImage(url: url) { image in
+                CachedAsyncImage(url: url, urlCache: AppConstants.urlCache) { image in
                     image
                         .resizable()
                         .scaledToFill()
@@ -88,7 +89,7 @@ struct CompactPost: View {
                     ProgressView()
                 }
             case .link(let url):
-                CachedAsyncImage(url: url) { image in
+                CachedAsyncImage(url: url, urlCache: AppConstants.urlCache) { image in
                     image
                         .resizable()
                         .scaledToFill()
