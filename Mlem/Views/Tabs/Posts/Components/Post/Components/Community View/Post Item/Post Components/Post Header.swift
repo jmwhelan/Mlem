@@ -10,6 +10,9 @@ import SwiftUI
 import CachedAsyncImage
 
 struct PostHeader: View {
+    // appstorage
+    @AppStorage("shouldShowUserServerInPost") var shouldShowUserServerInPost: Bool = false
+    
     // parameters
     var postView: APIPostView
     var account: SavedAccount
@@ -35,7 +38,7 @@ struct PostHeader: View {
         HStack {
             HStack(spacing: 4) {
                 // community avatar and name
-                NavigationLink(destination: CommunityView(account: account, community: postView.community, feedType: .all)) {
+                NavigationLink(value: postView.community) {
                     HStack {
                         communityAvatar
                             .frame(width: communityIconSize, height: communityIconSize)
@@ -47,7 +50,7 @@ struct PostHeader: View {
                     }
                 }
                 Text("by")
-                UserProfileLink(account: account, user: postView.creator)
+                UserProfileLink(account: account, user: postView.creator, showServerInstance: shouldShowUserServerInPost)
             }
 
             Spacer()

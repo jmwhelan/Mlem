@@ -14,7 +14,9 @@ internal enum PossibleStyling
 
 struct ExpandedPost: View
 {
-    @AppStorage("defaultCommentSorting") var defaultCommentSorting: CommentSortTypes = .top
+    // appstorage
+    @AppStorage("defaultCommentSorting") var defaultCommentSorting: CommentSortType = .top
+    @AppStorage("shouldShowUserServerInComment") var shouldShowUserServerInComment: Bool = false
 
     @EnvironmentObject var appState: AppState
 
@@ -25,14 +27,14 @@ struct ExpandedPost: View
 
     @EnvironmentObject var postTracker: PostTracker
 
-    let post: APIPostView
+    @State var post: APIPostView
 
     @State private var sortSelection = 0
 
-    @State private var commentSortingType: CommentSortTypes = .top
+    @State private var commentSortingType: CommentSortType = .top
 
     @FocusState var isReplyFieldFocused
-    
+
     @Binding var feedType: FeedType
 
     @State private var textFieldContents: String = ""
@@ -42,17 +44,17 @@ struct ExpandedPost: View
     @State private var isPostingComment: Bool = false
 
     @State private var viewID: UUID = UUID()
-    
+
     @State private var errorAlert: ErrorAlert?
-    
+
     @State var isDragging: Bool = false
-    
+
     var body: some View
     {
         ScrollView {
             VStack(spacing: 0) {
                 postView
-                
+
                 if commentTracker.isLoading {
                     commentsLoadingView
                 }
@@ -79,22 +81,22 @@ struct ExpandedPost: View
                         VStack(alignment: .leading, spacing: 5) {
                             HStack(alignment: .center, spacing: 2) {
                                 Text("Replying to ")
-                                UserProfileLabel(shouldShowUserAvatars: false, account: account, user: commentToReplyTo.creator, postContext: post, commentContext: commentToReplyTo.comment, communityContext: nil)
+                                UserProfileLabel(shouldShowUserAvatars: false, account: account, user: commentToReplyTo.creator, showServerInstance: shouldShowUserServerInComment, postContext: post, commentContext: commentToReplyTo.comment, communityContext: nil)
                             }
                             .foregroundColor(.secondary)
-                            
+
                             Text(commentToReplyTo.comment.content)
                                 .font(.system(size: 16))
                         }
-                        
+
                         Spacer()
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    
+
                     Divider()
                 }
-                
+
                 HStack(alignment: .center, spacing: 10)
                 {
                     TextField("Reply to post", text: $textFieldContents, prompt: Text("Commenting as \(account.username):"), axis: .vertical)
@@ -112,14 +114,14 @@ struct ExpandedPost: View
                                     Task(priority: .userInitiated)
                                     {
                                         isPostingComment = true
-                                        
+
                                         print("Will post comment")
-                                        
+
                                         defer
                                         {
                                             isPostingComment = false
                                         }
-                                        
+
                                         do
                                         {
                                             try await postComment(
@@ -129,17 +131,17 @@ struct ExpandedPost: View
                                                 account: account,
                                                 appState: appState
                                             )
-                                            
+
                                             isReplyFieldFocused = false
                                             textFieldContents = ""
                                         }
                                         catch let commentPostingError
                                         {
-                                            
+
                                             appState.alertTitle = "Couldn't post comment"
                                             appState.alertMessage = "An error occured when posting the comment.\nTry again later, or restart Mlem."
                                             appState.isShowingAlert.toggle()
-                                            
+
                                             print("Failed while posting error: \(commentPostingError)")
                                         }
                                     }
@@ -148,14 +150,14 @@ struct ExpandedPost: View
                                 {
                                     Task(priority: .userInitiated) {
                                         isPostingComment = true
-                                        
+
                                         print("Will post reply")
-                                        
+
                                         defer
                                         {
                                             isPostingComment = false
                                         }
-                                        
+
                                         do
                                         {
                                             try await postComment(
@@ -166,7 +168,7 @@ struct ExpandedPost: View
                                                 account: account,
                                                 appState: appState
                                             )
-                                            
+
                                             commentReplyTracker.commentToReplyTo = nil
                                             isReplyFieldFocused = false
                                             textFieldContents = ""
@@ -177,7 +179,7 @@ struct ExpandedPost: View
                                         }
                                     }
                                 }
-                                
+
                             } label: {
                                 Image(systemName: "paperplane")
                             }
@@ -204,34 +206,17 @@ struct ExpandedPost: View
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
-                    Button {
-                        commentSortingType = .active
-                    } label: {
-                        Label("Active", systemImage: "bubble.left.and.bubble.right")
-                    }
-
-                    Button {
-                        commentSortingType = .new
-                    } label: {
-                        Label("New", systemImage: "sun.max")
-                    }
-
-                    Button {
-                        commentSortingType = .top
-                    } label: {
-                        Label("Top", systemImage: "calendar.day.timeline.left")
+                    ForEach(CommentSortType.allCases, id: \.self) { type in
+                        Button {
+                            commentSortingType = type
+                        } label: {
+                            Label(type.description, systemImage: type.imageName)
+                        }
+                        .disabled(type == commentSortingType)
                     }
 
                 } label: {
-                    switch commentSortingType
-                    {
-                    case .new:
-                        Label("New", systemImage: "sun.max")
-                    case .top:
-                        Label("Top", systemImage: "calendar.day.timeline.left")
-                    case .active:
-                        Label("Active", systemImage: "bubble.left.and.bubble.right")
-                    }
+                    Label(commentSortingType.description, systemImage: commentSortingType.imageName)
                 }
             }
 
@@ -240,7 +225,7 @@ struct ExpandedPost: View
 
                 Button {
                     isReplyFieldFocused = false
-                    
+
                     if commentReplyTracker.commentToReplyTo != nil {
                         commentReplyTracker.commentToReplyTo = nil
                     }
@@ -265,17 +250,17 @@ struct ExpandedPost: View
         }
     }
     // subviews
-    
+
     /**
      Displays the post itself, plus a little divider to keep it visually distinct from comments
      */
     private var postView: some View {
         VStack(spacing: 0) {
-            LargePost(postView: post, account: account, isExpanded:  true, voteOnPost: voteOnPost)
+            LargePost(postView: post, account: account, isExpanded:  true, voteOnPost: voteOnPost, savePost: savePost)
             Divider().background(.black)
         }
     }
-    
+
     /**
      Displays a loading indicator for the comments
      */
@@ -293,7 +278,7 @@ struct ExpandedPost: View
                 commentSortingType = defaultCommentSorting
             }
     }
-    
+
     /**
      Displays a "no comments" message
      */
@@ -309,27 +294,27 @@ struct ExpandedPost: View
         .foregroundColor(.secondary)
         .padding()
     }
-    
+
     /**
      Displays the comments
      */
     private var commentsView: some View {
         LazyVStack(alignment: .leading, spacing: 0) {
             ForEach(commentTracker.comments) { comment in
-                CommentItem(account: account, hierarchicalComment: comment, depth: 0, showPostContext: false, isDragging: $isDragging)
+                CommentItem(account: account, hierarchicalComment: comment, postContext: post, depth: 0, showPostContext: false, isDragging: $isDragging)
             }
         }
         .environmentObject(commentTracker)
     }
-    
+
     // helper functions
-    
+
     func loadComments() async {
         defer { commentTracker.isLoading = false }
-        
+
         commentTracker.isLoading = true
         do {
-            let request = GetCommentsRequest(account: account, postId: post.id)
+            let request = GetCommentsRequest(account: account, postId: post.post.id)
             let response = try await APIClient().perform(request: request)
             commentTracker.comments = sortComments(response.comments.hierarchicalRepresentation, by: defaultCommentSorting)
         } catch APIClientError.response(let message, _) {
@@ -339,16 +324,18 @@ struct ExpandedPost: View
         }
     }
 
-    private func sortComments(_ comments: [HierarchicalComment], by sort: CommentSortTypes) -> [HierarchicalComment]
+    private func sortComments(_ comments: [HierarchicalComment], by sort: CommentSortType) -> [HierarchicalComment]
     {
         let sortedComments: [HierarchicalComment]
         switch sort
         {
         case .new:
             sortedComments = comments.sorted(by: { $0.commentView.comment.published > $1.commentView.comment.published })
+        case .old:
+            sortedComments = comments.sorted(by: { $0.commentView.comment.published < $1.commentView.comment.published })
         case .top:
             sortedComments = comments.sorted(by: { $0.commentView.counts.score > $1.commentView.counts.score })
-        case .active:
+        case .hot:
             sortedComments = comments.sorted(by: { $0.commentView.counts.childCount > $1.commentView.counts.childCount })
         }
 
@@ -358,9 +345,9 @@ struct ExpandedPost: View
             return newComment
         }
     }
-    
-    
-    
+
+
+
     /**
      Votes on a post
      NOTE: I /hate/ that this is here and threaded down through the view stack, but that's the only way I can get post votes to propagate properly without weird flickering
@@ -368,10 +355,17 @@ struct ExpandedPost: View
     func voteOnPost(inputOp: ScoringOperation) async -> Void {
         do {
             let operation = post.myVote == inputOp ? ScoringOperation.resetVote : inputOp
-            try await ratePost(postId: post.id, operation: operation, account: account, postTracker: postTracker, appState: appState)
+            self.post = try await ratePost(postId: post.post.id, operation: operation, account: account, postTracker: postTracker, appState: appState)
         } catch {
             print("failed to vote!")
         }
+    }
+    
+    /**
+     Sends a save request for the current post
+     */
+    func savePost(_ save: Bool) async throws -> Void {
+        self.post = try await sendSavePostRequest(account: account, postId: post.post.id, save: save, postTracker: postTracker)
     }
 }
 
