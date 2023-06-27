@@ -1,69 +1,60 @@
 //
-//  Rate Post or Comment.swift
+//  Delete Post or Comment.swift
 //  Mlem
 //
-//  Created by David Bureš on 23.05.2023.
+//  Created by Jake Shirley on 6/26/23.
 //
 
 import Foundation
 
-enum ScoringOperation: Int, Decodable {
-    case upvote = 1
-    case downvote = -1
-    case resetVote = 0
-}
-
-enum RatingFailure: Error {
-    case failedToPostScore
+enum DeletionFailiure: Error {
+    case failedToDelete
 }
 
 @MainActor
-func ratePost(
+func deletePost(
     postId: Int,
-    operation: ScoringOperation,
     account: SavedAccount,
     postTracker: PostTracker,
     appState: AppState
 ) async throws -> APIPostView {
     do {
-        let request = CreatePostLikeRequest(
+        let request = DeletePostRequest(
             account: account,
             postId: postId,
-            score: operation
+            deleted: true
         )
-
-        AppConstants.hapticManager.notificationOccurred(.success)
+        
         let response = try await APIClient().perform(request: request)
         postTracker.update(with: response.postView)
+        AppConstants.hapticManager.notificationOccurred(.success)
         return response.postView
     } catch {
         AppConstants.hapticManager.notificationOccurred(.error)
-        throw RatingFailure.failedToPostScore
+        throw DeletionFailiure.failedToDelete
     }
 }
 
 @MainActor
-func rateComment(
+func deleteComment(
     comment: APICommentView,
-    operation: ScoringOperation,
     account: SavedAccount,
     commentTracker: CommentTracker,
     appState: AppState
 ) async throws -> HierarchicalComment? {
     do {
-        let request = CreateCommentLikeRequest(
+        let request = DeleteCommentRequest(
             account: account,
-            commentId: comment.id,
-            score: operation
+            commentId: comment.id
         )
-
-        AppConstants.hapticManager.notificationOccurred(.success)
+        
         let response = try await APIClient().perform(request: request)
         let updatedComment = commentTracker.comments.update(with: response.commentView)
+        AppConstants.hapticManager.notificationOccurred(.success)
         return updatedComment
-    } catch let ratingOperationError {
+    } catch {
         AppConstants.hapticManager.notificationOccurred(.error)
-        print("Failed while trying to score: \(ratingOperationError)")
-        throw RatingFailure.failedToPostScore
+        print("Failed to delete comment: \(error)")
+        throw DeletionFailiure.failedToDelete
     }
 }
