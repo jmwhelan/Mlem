@@ -7,57 +7,56 @@
 
 import SwiftUI
 
-struct ContentView: View
-{
-    
+struct ContentView: View {
+
     @EnvironmentObject var appState: AppState
-    
+
     @State private var errorAlert: ErrorAlert?
-    
-    var body: some View
-    {
-        TabView
-        {
-            AccountsPage()
-                .tabItem
-                {
-                    Label("Feeds", systemImage: "text.bubble")
-                }
-            
-            if let currentActiveAccount = appState.currentActiveAccount
-            {
-                VStack {
-                    Spacer()
-                    Text("Messages is not yet implemented.  Coming soon!")
-                        .font(.title)
-                        .multilineTextAlignment(.center)
-                    Spacer()
-                    Text(verbatim: "\(currentActiveAccount.username): \(currentActiveAccount.id)")
-                    Spacer()
-                }.tabItem {
-                    Label("Messages", systemImage: "mail.stack")
-                }
-                
-                UserView(userID: currentActiveAccount.id, account: currentActiveAccount)
+    @State private var tabSelection = 1
+
+    @AppStorage("showUsernameInNavigationBar") var showUsernameInNavigationBar: Bool = true
+
+    var body: some View {
+        TabView(selection: $tabSelection) {
+            FeedRoot()
+                .tabItem {
+                    Label("Feeds", systemImage: "scroll")
+                        .environment(\.symbolVariants, tabSelection == 1 ? .fill : .none)
+                }.tag(1)
+
+            if let currentActiveAccount = appState.currentActiveAccount {
+                InboxView(account: currentActiveAccount)
                     .tabItem {
-                        Label(currentActiveAccount.username, systemImage: "person")
-                    }
+                        Label("Inbox", systemImage: "mail.stack")
+                            .environment(\.symbolVariants, tabSelection == 2 ? .fill : .none)
+                    }.tag(2)
+
+                NavigationView {
+                    ProfileView(account: currentActiveAccount)
+                } .tabItem {
+                    Label(computeUsername(account: currentActiveAccount), systemImage: "person.circle")
+                        .environment(\.symbolVariants, tabSelection == 3 ? .fill : .none)
+                }.tag(3)
             }
-            
+
             SettingsView()
-                .tabItem
-                {
+                .tabItem {
                     Label("Settings", systemImage: "gear")
-                }
+                        .environment(\.symbolVariants, tabSelection == 4 ? .fill : .none)
+                }.tag(4)
         }
-        .onAppear
-        {
+        .onAppear {
             AppConstants.keychain["test"] = "I-am-a-saved-thing"
         }
         .alert(using: $errorAlert) { content in
             Alert(title: Text(content.title), message: Text(content.message))
         }
         .environment(\.openURL, OpenURLAction(handler: didReceiveURL))
+    }
+    
+    // MARK: helpers
+    func computeUsername(account: SavedAccount) -> String {
+        return showUsernameInNavigationBar ? account.username : "Profile"
     }
 }
 
@@ -66,7 +65,7 @@ struct ContentView: View
 extension ContentView {
     func didReceiveURL(_ url: URL) -> OpenURLAction.Result {
         let outcome = URLHandler.handle(url)
-        
+
         switch outcome.action {
         case let .error(message):
             errorAlert = .init(
@@ -76,7 +75,7 @@ extension ContentView {
         default:
             break
         }
-        
+
         return outcome.result
     }
 }

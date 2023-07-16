@@ -9,13 +9,16 @@ import Foundation
 import SwiftUI
 
 struct StandardVoteComplex: View {
+    
+    @EnvironmentObject var appState: AppState
+    
     // parameters
     let vote: ScoringOperation
     let score: Int
     let height: CGFloat
     let upvote: () async -> Void
     let downvote: () async -> Void
-    
+
     var body: some View {
         HStack(spacing: 4) {
             HStack(spacing: 2) {
@@ -34,12 +37,14 @@ struct StandardVoteComplex: View {
                 }
             }
             
-            DownvoteButton(vote: vote, size: height)
-                .onTapGesture {
-                    Task(priority: .userInitiated) {
-                        await downvote()
+            if appState.enableDownvote {
+                DownvoteButton(vote: vote, size: height)
+                    .onTapGesture {
+                        Task(priority: .userInitiated) {
+                            await downvote()
+                        }
                     }
-                }
+            }
         }
     }
 }

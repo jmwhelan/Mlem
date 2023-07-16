@@ -22,3 +22,14 @@ struct APICommentReplyView: Decodable {
     let creatorBlocked: Bool
     let myVote: Int?
 }
+
+extension APICommentReplyView: Identifiable {
+    var id: Int { commentReply.id }
+}
+
+// MARK: - FeedTrackerItem
+
+extension APICommentReplyView: FeedTrackerItem {
+    var uniqueIdentifier: some Hashable { id }
+    var published: Date { commentReply.published }
+}

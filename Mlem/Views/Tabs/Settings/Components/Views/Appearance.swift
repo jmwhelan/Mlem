@@ -8,33 +8,39 @@
 import SwiftUI
 
 struct AppearanceSettingsView: View {
-    
+
     // appearance
     @AppStorage("lightOrDarkMode") var lightOrDarkMode: UIUserInterfaceStyle = .unspecified
     @AppStorage("shouldBlurNsfw") var shouldBlurNsfw: Bool = true
-    
+    @AppStorage("showUsernameInNavigationBar") var showUsernameInNavigationBar: Bool = true
+
     // website previews
     @AppStorage("shouldShowWebsitePreviews") var shouldShowWebsitePreviews: Bool = true
     @AppStorage("shouldShowWebsiteFaviconAtAll") var shouldShowWebsiteFaviconAtAll: Bool = true
     @AppStorage("shouldShowWebsiteHost") var shouldShowWebsiteHost: Bool = true
     @AppStorage("shouldShowWebsiteFavicons") var shouldShowWebsiteFavicons: Bool = true
-    
+
     // posts
     @AppStorage("shouldShowCompactPosts") var shouldShowCompactPosts: Bool = false
+    @AppStorage("shouldShowUserServerInPost") var shouldShowUserServerInPost: Bool = false
+    @AppStorage("shouldShowPostCreator") var shouldShowPostCreator: Bool = true
     
+    // comments
+    @AppStorage("shouldShowUserServerInComment") var shouldShowUserServerInComment: Bool = false
+
     // communities
     @AppStorage("shouldShowCommunityHeaders") var shouldShowCommunityHeaders: Bool = true
-    
+    @AppStorage("shouldShowUserHeaders") var shouldShowUserHeaders: Bool = true
+
     // icons
     @AppStorage("shouldShowUserAvatars") var shouldShowUserAvatars: Bool = true
     @AppStorage("shouldShowCommunityIcons") var shouldShowCommunityIcons: Bool = true
-    
+
     // other
     @AppStorage("voteComplexStyle") var voteComplexStyle: VoteComplexStyle = .standard
-    
+
     var body: some View {
-        List
-        {
+        List {
             Section("Theme") {
                 SelectableSettingsItem(
                     settingIconSystemName: "paintbrush",
@@ -43,8 +49,7 @@ struct AppearanceSettingsView: View {
                     options: UIUserInterfaceStyle.allCases
                 )
             }
-            Section("Website Previews")
-            {
+            Section("Website Previews") {
                 WebsiteIconComplex(post:
                                     APIPost(
                                         id: 0,
@@ -70,9 +75,9 @@ struct AppearanceSettingsView: View {
                                         updated: nil
                                     )
                                    )
-                
+
                 .padding(.horizontal)
-                
+
                 SwitchableSettingsItem(
                     settingPictureSystemName: "photo.circle.fill",
                     settingPictureColor: .pink,
@@ -85,13 +90,10 @@ struct AppearanceSettingsView: View {
                     settingName: "Show website icons",
                     isTicked: $shouldShowWebsiteFaviconAtAll
                 )
-                .onChange(of: shouldShowWebsiteFaviconAtAll) { newValue in
-                    if shouldShowWebsiteFaviconAtAll == false
-                    {
+                .onChange(of: shouldShowWebsiteFaviconAtAll) { _ in
+                    if shouldShowWebsiteFaviconAtAll == false {
                         shouldShowWebsiteFavicons = false
-                    }
-                    else
-                    {
+                    } else {
                         shouldShowWebsiteFavicons = true
                     }
                 }
@@ -102,8 +104,7 @@ struct AppearanceSettingsView: View {
                     isTicked: $shouldShowWebsiteHost
                 )
             }
-            Section("Posts")
-            {
+            Section("Posts") {
                 SwitchableSettingsItem(
                     settingPictureSystemName: "wifi.circle.fill",
                     settingPictureColor: .pink,
@@ -111,45 +112,67 @@ struct AppearanceSettingsView: View {
                     isTicked: $shouldShowWebsiteFavicons
                 )
                 .disabled(!shouldShowWebsiteFaviconAtAll)
-                
+
                 SwitchableSettingsItem(settingPictureSystemName: "rectangle.compress.vertical",
                              settingPictureColor: .pink,
                              settingName: "Compact post view",
                              isTicked: $shouldShowCompactPosts)
-                
+
                 SwitchableSettingsItem(settingPictureSystemName: "eye.trianglebadge.exclamationmark",
                              settingPictureColor: .pink,
                              settingName: "Blur NSFW",
                              isTicked: $shouldBlurNsfw)
+                
+                SwitchableSettingsItem(settingPictureSystemName: "server.rack",
+                             settingPictureColor: .pink,
+                             settingName: "Show user server instance",
+                             isTicked: $shouldShowUserServerInPost)
+                
+                SwitchableSettingsItem(settingPictureSystemName: "signature",
+                                       settingPictureColor: .pink,
+                                       settingName: "Show post creator",
+                                       isTicked: $shouldShowPostCreator)
             }
             
-            Section("Communities")
-            {
+            Section("Comments") {
+                SwitchableSettingsItem(settingPictureSystemName: "server.rack",
+                             settingPictureColor: .pink,
+                             settingName: "Show user server instance",
+                             isTicked: $shouldShowUserServerInComment)
+            }
+
+            Section("Communities") {
+                SwitchableSettingsItem(
+                    settingPictureSystemName: "person.2.circle.fill",
+                    settingPictureColor: .pink,
+                    settingName: "Show community avatars",
+                    isTicked: $shouldShowCommunityIcons
+                )
+                
                 SwitchableSettingsItem(
                     settingPictureSystemName: "rectangle.grid.1x2",
                     settingPictureColor: .pink,
-                    settingName: "Show community headers",
+                    settingName: "Show community banners",
                     isTicked: $shouldShowCommunityHeaders
                 )
             }
-            
-            Section("Icons")
-            {
+
+            Section("Users") {
                 SwitchableSettingsItem(
                     settingPictureSystemName: "person.circle.fill",
                     settingPictureColor: .pink,
                     settingName: "Show user avatars",
                     isTicked: $shouldShowUserAvatars
                 )
-                
+
                 SwitchableSettingsItem(
-                    settingPictureSystemName: "person.2.circle.fill",
+                    settingPictureSystemName: "rectangle.grid.1x2",
                     settingPictureColor: .pink,
-                    settingName: "Show community icons",
-                    isTicked: $shouldShowCommunityIcons
+                    settingName: "Show user banners",
+                    isTicked: $shouldShowUserHeaders
                 )
             }
-            
+
             Section("Further customization") {
                 SelectableSettingsItem(
                     settingIconSystemName: "arrow.up.arrow.down.square.fill",
@@ -158,6 +181,14 @@ struct AppearanceSettingsView: View {
                     options: VoteComplexStyle.allCases
                 )
 
+            }
+            
+            Section("Privacy") {
+                SwitchableSettingsItem(settingPictureSystemName: "person.fill",
+                                       settingPictureColor: .pink,
+                                       settingName: "Show Username In Navigation Bar",
+                                       isTicked: $showUsernameInNavigationBar)
+                
             }
         }
         .navigationTitle("Appearance")

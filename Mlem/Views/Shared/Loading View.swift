@@ -7,36 +7,41 @@
 
 import SwiftUI
 
-struct LoadingView: View
-{
-    enum PossibleThingsToLoad
-    {
-        case posts
-        case image
-        case comments
+struct LoadingView: View {
+    enum PossibleThingsToLoad {
+        case posts, image, comments, inbox, replies, mentions, messages, communityDetails
     }
 
     let whatIsLoading: PossibleThingsToLoad
 
-    var body: some View
-    {
-        VStack
-        {
+    var body: some View {
+        VStack {
             Spacer()
 
             ProgressView()
-            switch whatIsLoading
-            {
+                .accessibilityHidden(true)
+            switch whatIsLoading {
             case .posts:
                 Text("Loading posts")
             case .image:
                 Text("Loading image")
             case .comments:
                 Text("Loading comments")
+            case .inbox:
+                Text("Loading inbox")
+            case .replies:
+                Text("Loading replies")
+            case .mentions:
+                Text("Loading mentions")
+            case .messages:
+                Text("Loading messages")
+            case .communityDetails:
+                Text("Loading community details")
             }
 
             Spacer()
         }
+        .accessibilityElement(children: .combine)
         .foregroundColor(.secondary)
         .frame(maxWidth: .infinity)
     }

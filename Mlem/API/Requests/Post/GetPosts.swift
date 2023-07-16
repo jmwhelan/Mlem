@@ -20,15 +20,14 @@ struct GetPostsRequest: APIGetRequest {
         account: SavedAccount,
         communityId: Int?,
         page: Int,
-        sort: SortingOptions?,
+        sort: PostSortType?,
         type: FeedType,
         limit: Int? = nil,
         savedOnly: Bool? = nil,
         communityName: String? = nil
     ) {
         self.instanceURL = account.instanceLink
-
-        var queryItems: [URLQueryItem] = [
+        self.queryItems = [
             .init(name: "auth", value: account.accessToken),
             .init(name: "page", value: "\(page)"),
             .init(name: "type_", value: type.rawValue),
@@ -38,12 +37,16 @@ struct GetPostsRequest: APIGetRequest {
             .init(name: "limit", value: limit.map(String.init)),
             .init(name: "saved_only", value: savedOnly.map(String.init))
         ]
-
-        self.queryItems = queryItems
     }
 }
 
 // lemmy_api_common::post::GetPostsResponse
 struct GetPostsResponse: Decodable {
     let posts: [APIPostView]
+}
+
+// MARK: - FeedTrackerItemProviding
+
+extension GetPostsResponse: FeedTrackerItemProviding {
+    var items: [APIPostView] { posts }
 }

@@ -7,17 +7,20 @@
 
 import SwiftUI
 
-struct SettingsView: View
-{
+struct SettingsView: View {
     @Environment(\.openURL) private var openURL
-    
+
     @State private var specialContributors: [Contributor] = [
         Contributor(
             name: "Seb Jachec",
             avatarLink: URL(string: "https://avatars.githubusercontent.com/u/379991?v=4")!,
-            reasonForAcknowledgement: "Implemented many critical features, namely comment rendering, among others.\nIs always great help with any Swift and programming questions, and I would never have come this far without his help",
+            reasonForAcknowledgement: """
+                                      Implemented many critical features, namely comment rendering, among others. \
+                                      Is always great help with any Swift and programming questions, and I would never \
+                                      have come this far without his help
+                                      """,
             websiteLink: URL(string: "https://github.com/sebj")!
-        ),
+        )
     ]
     @State private var contributors: [Contributor] = [
         Contributor(
@@ -25,61 +28,50 @@ struct SettingsView: View
             avatarLink: URL(string: "https://media.mstdn.social/cache/accounts/avatars/109/299/685/376/110/779/original/9ef1f88eff2118a4.png")!,
             reasonForAcknowledgement: "Came up with a performant and resilient way of getting data from the Lemmy API",
             websiteLink: URL(string: "https://elk.zone/mstdn.social/@samalone@twit.social")!
-        ),
+        )
     ]
-    
+
     func getVersionString() -> String {
         var result = "n/a"
-        
+
         if let releaseVersion = Bundle.main.releaseVersionNumber {
-            result = releaseVersion;
+            result = releaseVersion
         }
-        
+
         if let buildVersion = Bundle.main.buildVersionNumber {
             result.append(" (\(buildVersion))")
         }
-        
+
         return result
     }
 
-    var body: some View
-    {
-        NavigationView
-        {
-            List
-            {
-                Section
-                {
-                    NavigationLink
-                    {
+    var body: some View {
+        NavigationView {
+            List {
+                Section {
+                    NavigationLink {
                         GeneralSettingsView()
                     } label: {
-                        HStack(alignment: .center)
-                        {
+                        HStack(alignment: .center) {
                             Image(systemName: "gearshape.circle.fill")
                                 .foregroundColor(.gray)
                             Text("General")
                         }
                     }
 
-                    NavigationLink
-                    {
+                    NavigationLink {
                         AppearanceSettingsView()
                     } label: {
-                        HStack(alignment: .center)
-                        {
+                        HStack(alignment: .center) {
                             Image(systemName: "theatermasks.circle.fill")
                                 .foregroundColor(.pink)
                             Text("Appearance")
                         }
                     }
-
-                    NavigationLink
-                    {
+                    NavigationLink {
                         FiltersSettingsView()
                     } label: {
-                        HStack(alignment: .center)
-                        {
+                        HStack(alignment: .center) {
                             Image(systemName: "slash.circle.fill")
                                 .foregroundColor(.yellow)
                             Text("Filters")
@@ -87,20 +79,25 @@ struct SettingsView: View
                     }
                 }
 
-                Section
-                {
-                    NavigationLink
-                    {
-                        VStack(alignment: .center, spacing: 20)
-                        {
-                            List
-                            {
-                                Section
-                                {
-                                    ForEach(specialContributors)
-                                    { contributor in
-                                        NavigationLink
-                                        {
+                Section {
+                    NavigationLink {
+                        AlternativeIcons()
+                    } label: {
+                        HStack(alignment: .center) {
+                            AlternativeIcons.getCurrentIcon()
+                                .foregroundColor(.pink)
+                            Text("Alternative Icons")
+                        }
+                    }
+                }
+
+                Section {
+                    NavigationLink {
+                        VStack(alignment: .center, spacing: 20) {
+                            List {
+                                Section {
+                                    ForEach(specialContributors) { contributor in
+                                        NavigationLink {
                                             ContributorsView(contributor: contributor)
                                         } label: {
                                             Text(contributor.name)
@@ -112,12 +109,9 @@ struct SettingsView: View
                                     Text("Without Seb's help, none of my apps would exist.")
                                 }
 
-                                Section
-                                {
-                                    ForEach(contributors)
-                                    { contributor in
-                                        NavigationLink
-                                        {
+                                Section {
+                                    ForEach(contributors) { contributor in
+                                        NavigationLink {
                                             ContributorsView(contributor: contributor)
                                         } label: {
                                             Text(contributor.name)
@@ -127,20 +121,17 @@ struct SettingsView: View
                                     Text("Contributors")
                                 }
 
-                                Section
-                                {
-                                    Link(destination: URL(string: "https://github.com/lorenzofiamingo/swiftui-cached-async-image")!)
-                                    {
+                                Section {
+                                    Link(destination: URL(string: "https://github.com/lorenzofiamingo/swiftui-cached-async-image")!) {
                                         Text("Cached Async Image")
                                     }
-                                    Link(destination: URL(string: "https://github.com/gonzalezreal/swift-markdown-ui")!)
-                                    {
+                                    Link(destination: URL(string: "https://github.com/gonzalezreal/swift-markdown-ui")!) {
                                         Text("MarkdownUI")
                                     }
                                 } header: {
                                     Text("Packages Used")
                                 }
-                                
+
                                 Text("Version \(getVersionString())")
                             }
                         }
@@ -149,7 +140,7 @@ struct SettingsView: View
                             .foregroundColor(.blue)
                         Text("About Mlem")
                     }
-                    
+
                     Link(destination: URL(string: "https://lemmy.ml/c/mlemapp")!) {
                         Image(systemName: "person.2.circle.fill")
                             .foregroundColor(.purple)
